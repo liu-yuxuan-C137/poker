@@ -291,6 +291,7 @@ if __name__ == "__main__":
                    room_number=room_number,
                    game_number=game_number)
     sendJson(client, message)
+    position = None  # 初始化position变量
     while True:
         data = recvJson(client)
         if data['info'] == 'state':
@@ -299,11 +300,25 @@ if __name__ == "__main__":
                 action = get_action(data)
                 sendJson(client, {'action': action, 'info': 'action'})
         elif data['info'] == 'result':
-            print('win money: {},\tyour card: {},\topp card: {},\t\tpublic card: {}'.format(
-                data['players'][position]['win_money'], data['player_card'][position],
-                data['player_card'][1 - position], data['public_card']))
+            if position is not None:
+                win_money = data['players'][position]['win_money']
+                your_card = data['player_card'][position]
+                opp_card = data['player_card'][1 - position]
+                public_card = data['public_card']
+
+                print(f"\n=== 本局结果 ===")
+                print(f"盈亏: {win_money:+d}")
+                print(f"你的手牌: {your_card}")
+                print(f"对手手牌: {opp_card}")
+                print(f"公共牌: {public_card}")
+                print(f"当前总筹码: {data['players'][position]['money_left']}")
+                print("=" * 30)
             sendJson(client, {'info': 'ready', 'status': 'start'})
         else:
             print(data)
             break
+
+    print(f"\n{name} 对战结束!")
+    print("按任意键退出...")
+    input()
     client.close()
